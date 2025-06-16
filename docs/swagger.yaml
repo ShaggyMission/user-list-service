@@ -1,0 +1,249 @@
+openapi: 3.0.0
+info:
+  title: User List API - Shaggy Mission
+  version: 1.0.0
+  description: >
+    This API provides user listing functionality for the Shaggy Mission platform.  
+    It allows retrieving paginated lists of registered users including volunteers, adopters, 
+    veterinarians, and administrators.  
+    **Pagination is handled automatically with configurable page size.**  
+    The API returns user data along with pagination metadata for efficient data navigation.
+
+servers:
+  - url: http://localhost:3005
+    description: Development server
+
+paths:
+  /list/users:
+    get:
+      summary: Get paginated list of users
+      description: >
+        Retrieves a paginated list of all registered users in the Shaggy Mission platform.  
+        Returns user information along with pagination metadata including current page,  
+        total items, and total pages. Default page size is 10 users per page.  
+        Useful for administrative dashboards and user management interfaces.
+      tags:
+        - User Management
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: >
+            Page number for pagination. Must be a positive integer.  
+            If not provided, defaults to page 1.
+          example: 1
+      responses:
+        '200':
+          description: Users retrieved successfully with pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    description: Array of user objects
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+              examples:
+                successful_response:
+                  summary: Successful user list retrieval
+                  value:
+                    users:
+                      - id: "1"
+                        firstName: "John"
+                        lastName: "Doe"
+                        email: "john.doe@shaggymission.com"
+                        phone: "+1234567890"
+                        role: "volunteer"
+                        createdAt: "2024-01-15T10:30:00Z"
+                        updatedAt: "2024-01-15T10:30:00Z"
+                      - id: "2"
+                        firstName: "Jane"
+                        lastName: "Smith"
+                        email: "jane.smith@shaggymission.com"
+                        phone: "+0987654321"
+                        role: "adopter"
+                        createdAt: "2024-01-16T14:20:00Z"
+                        updatedAt: "2024-01-16T14:20:00Z"
+                    pagination:
+                      currentPage: 1
+                      pageSize: 10
+                      totalItems: 25
+                      totalPages: 3
+                empty_response:
+                  summary: Empty user list
+                  value:
+                    users: []
+                    pagination:
+                      currentPage: 1
+                      pageSize: 10
+                      totalItems: 0
+                      totalPages: 0
+        '400':
+          description: Bad Request – Invalid page parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_page:
+                  summary: Invalid page parameter
+                  value:
+                    error: "Page must be a positive integer"
+        '500':
+          description: Internal Server Error – Database or server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                server_error:
+                  summary: Internal server error
+                  value:
+                    error: "Internal server error"
+                database_error:
+                  summary: Database connection error
+                  value:
+                    error: "Database connection failed"
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user
+          example: "123"
+        firstName:
+          type: string
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@shaggymission.com"
+        phone:
+          type: string
+          description: User's phone number
+          example: "+1234567890"
+        role:
+          type: string
+          description: User's role in the platform
+          example: "volunteer"
+          enum:
+            - volunteer
+            - adopter
+            - veterinarian
+            - administrator
+        createdAt:
+          type: string
+          format: date-time
+          description: User registration timestamp
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last profile update timestamp
+          example: "2024-01-15T10:30:00Z"
+    
+    PaginationInfo:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          description: Current page number
+          example: 1
+        pageSize:
+          type: integer
+          description: Number of items per page
+          example: 10
+        totalItems:
+          type: integer
+          description: Total number of users in the database
+          example: 25
+        totalPages:
+          type: integer
+          description: Total number of pages available
+          example: 3
+    
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          description: Array of user objects
+          items:
+            $ref: '#/components/schemas/User'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+    
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message describing the issue
+          example: "Internal server error"
+
+  examples:
+    FirstPageRequest:
+      summary: Request for first page
+      description: Standard request for the first page of users
+      value:
+        page: 1
+    
+    SpecificPageRequest:
+      summary: Request for specific page
+      description: Request for a specific page number
+      value:
+        page: 3
+    
+    SuccessfulUserList:
+      summary: Successful user list with pagination
+      description: Example response with users and pagination info
+      value:
+        users:
+          - id: "1"
+            firstName: "María"
+            lastName: "García"
+            email: "maria.garcia@shaggymission.com"
+            phone: "+593987654321"
+            role: "volunteer"
+            createdAt: "2024-01-15T10:30:00Z"
+            updatedAt: "2024-01-15T10:30:00Z"
+          - id: "2"
+            firstName: "Carlos"
+            lastName: "Rodríguez"
+            email: "carlos.rodriguez@shaggymission.com"
+            phone: "+593123456789"
+            role: "veterinarian"
+            createdAt: "2024-01-16T14:20:00Z"
+            updatedAt: "2024-01-16T14:20:00Z"
+        pagination:
+          currentPage: 1
+          pageSize: 10
+          totalItems: 25
+          totalPages: 3
+
+tags:
+  - name: User Management
+    description: >
+      Operations related to user management and listing functionality.  
+      Provides endpoints for retrieving user information with pagination support.
+
+externalDocs:
+  description: Find more info about Shaggy Mission
+  url: https://shaggymission.com
