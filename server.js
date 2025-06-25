@@ -1,17 +1,7 @@
-const express = require('express');
-const cors = require('cors');
+const app = require('./app');
 const sequelize = require('./config/database');
-const userRoutes = require('./routes/userRoutes');
-const swaggerRoute = require('./routes/swaggerRoute'); 
 
-const app = express();
 const PORT = 3005;
-
-app.use(cors());
-app.use(express.json());
-
-app.use('/users', userRoutes);
-app.use('/users', swaggerRoute); 
 
 sequelize.authenticate()
   .then(() => {
